@@ -5,6 +5,7 @@ mod game_view;
 mod input;
 mod game;
 
+
 use piston_window::*;
 use tic_tac_toe::*;
 use input::*;
@@ -21,15 +22,18 @@ fn main() {
     let game_board = GameBoard::new(BOARD_SIZE_X, BOARD_SIZE_Y, WIN_SEQ_LEN);
     let mut game = Game::new(game_board, RESOLUTION_X, RESOLUTION_Y);
 
-    let mut window: PistonWindow = 
-        WindowSettings::new("Tic-tac-toe", [RESOLUTION_X, RESOLUTION_Y])
-            .exit_on_esc(true)
-            .samples(8)
+    let mut window: PistonWindow = PistonWindow::new(
+        OpenGL::V3_3,
+        0,
+        WindowSettings::new("Hello World!", [RESOLUTION_X, RESOLUTION_Y])
+            .opengl(OpenGL::V3_3)
+            .samples(4)
+            .srgb(false)
             .build()
-            .unwrap();
+            .unwrap(),
+    );
 
     while let Some(e) = window.next() {
-
         game.process_event(&e);
 
         window.draw_2d(&e, |c, g| {

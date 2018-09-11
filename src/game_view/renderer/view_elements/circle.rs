@@ -12,8 +12,8 @@ use game_view::renderer::renderable::Renderable;
 
 #[derive(Copy, Clone)]
 pub struct Circle {
-    x: usize,
-    y: usize,
+    pub x: usize,
+    pub y: usize,
     ellipse: Ellipse,
     units: Scalar,
 }
@@ -30,7 +30,7 @@ impl Renderable for Circle {
         where G: Graphics
     {
 
-        let offset = 0.0; //self.units / 8.0;
+        let offset = self.units / 8.0;
 
         let x1 = self.x as Scalar * self.units + (offset / 2.0);
         let y1 = self.y as Scalar * self.units + (offset / 2.0);

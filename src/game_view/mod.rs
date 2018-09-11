@@ -25,17 +25,23 @@ impl GameView {
         where G: Graphics
     {
         self.grid.draw(draw_state, transform, g);
+
+        let mut circle = Circle::new(0, 0, self.grid.units());
+        let mut cross = Cross::new(0, 0, self.grid.units());
+
         for row in 0..game_board.rows() {
             for column in 0..game_board.cols() {
                 
                 match game_board.get(row, column) {
                     GameElem::X => {
-                        let element = Cross::new(row, column, self.grid.units());
-                        element.draw(draw_state, transform, g);
+                        cross.x = row;
+                        cross.y = column;
+                        cross.draw(draw_state, transform, g);
                     },
                     GameElem::O => {
-                        let element = Circle::new(row, column, self.grid.units());
-                        element.draw(draw_state, transform, g);
+                        circle.x = row;
+                        circle.y = column;
+                        circle.draw(draw_state, transform, g);
                     },
                     _ => ()
                 }

@@ -12,8 +12,8 @@ use game_view::renderer::renderable::Renderable;
 
 #[derive(Copy, Clone)]
 pub struct Cross {
-    x: usize,
-    y: usize,
+    pub x: usize,
+    pub y: usize,
     line: Line,
     units: Scalar,
 }

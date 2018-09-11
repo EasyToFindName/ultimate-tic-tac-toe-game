@@ -13,8 +13,8 @@ use game_view::renderer::renderable::Renderable;
 
 #[derive(Copy, Clone)]
 pub struct Block {
-    x: usize, 
-    y: usize,
+    pub x: usize,
+    pub y: usize,
     rect: Rectangle,
     units: Scalar,
 }
