@@ -134,12 +134,10 @@ impl<'a> Iterator for GameBoardSequenceIter<'a> {
     type Item = Point<usize>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let board_val = self.board.get_optional(self.pos.y, self.pos.x);
-        if let None = board_val {
-            return None;
-        }
-
-        let board_val = board_val.unwrap();
+        let board_val = match self.board.get_optional(self.pos.y, self.pos.x) {
+            Some(val) => val,
+            None => return None,
+        };
 
         if board_val == self.value {
             let old_pos = self.pos;
@@ -158,9 +156,9 @@ impl fmt::Display for GameBoard {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for i in 0..self.board.rows() {
             for j in 0..self.board.columns() {
-                let _ = write!(f, "{} ", self.get(i, j));
+                write!(f, "{} ", self.get(i, j))?;
             }
-            let _ = write!(f, "\n");
+            write!(f, "\n")?;
         }
 
         Ok(())

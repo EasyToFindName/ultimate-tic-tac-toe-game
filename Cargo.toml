@@ -2,6 +2,3 @@
 name = "tic_tac_toe"
 version = "0.1.0"
 authors = ["EasyToFindName <golodorov@gmail.com>"]
-
-[dependencies]
-piston_window = "0.70.0"
