@@ -1,0 +1,14 @@
+[package]
+name = "web_client"
+version = "0.1.0"
+authors = ["EasyToFindName <golodorov@gmail.com>"]
+
+[[bin]]
+name = "tic_tac_toe_server"
+path = "./backend/main.rs"
+
+
+[dependencies]
+actix = "0.7"
+actix-web = "0.7"
+tic_tac_toe = {path = "../tic-tac-toe"}
