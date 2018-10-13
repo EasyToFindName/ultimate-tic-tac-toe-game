@@ -1,4 +1,4 @@
-pub mod basics;
+pub(crate) mod basics;
 pub mod game_board;
 pub mod game_elements;
 

@@ -16,7 +16,7 @@ function init() {
 
     game_socket.addEventListener('open', function (event) {
         console.log("Socket is opened");
-        socket.send('Hello Server!');
+        game_socket.send('Hello Server!');
     });
 
     console.log("Web socket should be created");
@@ -40,8 +40,7 @@ function mouse_clicked(canvas, ev) {
     };
 
     let logic = game_view.view_to_logic_coords(view.x, view.y);
-
-    set_random_element(logic.x, logic.y);
+    game_socket.send(JSON.stringify(logic));
 }
 
 function set_random_element(logic_x, logic_y) {

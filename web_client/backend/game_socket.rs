@@ -1,19 +1,26 @@
 use actix::prelude::*;
-use actix_web::ws;
+use actix_web::{ws, ws::Message};
 use std::time::{Duration, Instant};
+use serde_json;
+
+use game_lobby::TurnData;
+use game_lobby::GameLobby;
+use AppState;
+
+use std::sync::Arc;
 
 static CONNECTION_TIMEOUT: Duration = Duration::from_secs(5);
 static PING_INTERVAL: Duration = Duration::from_secs(1);
 
-
 pub struct GameSocket {
     pong_time: Instant,
+    lobby_addr: Arc<Addr<GameLobby>>
 }
 
 impl GameSocket {
-    pub fn new() -> GameSocket {
+    pub fn new(lobby_addr: Arc<Addr<GameLobby>>) -> GameSocket {
         GameSocket {
-            pong_time: Instant::now(),
+            pong_time: Instant::now(), lobby_addr
         }
     }
 
@@ -26,7 +33,6 @@ impl GameSocket {
                 ctx.stop();
             }
             else {
-                println!("Time elapsed since pong: {:?}", delta_time);
                 ctx.ping("");
             }
         });
@@ -35,7 +41,7 @@ impl GameSocket {
 
 
 impl Actor for GameSocket {
-    type Context = ws::WebsocketContext<Self>;
+    type Context = ws::WebsocketContext<Self, AppState>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
         println!("Web socket is opened");
@@ -45,11 +51,25 @@ impl Actor for GameSocket {
 
 impl StreamHandler<ws::Message, ws::ProtocolError> for GameSocket {
     fn handle(&mut self, msg: ws::Message, ctx: &mut Self::Context) {
-        use ws::Message;
         match msg {
             Message::Pong(_any) => {
-                println!("Got pong message");
                 self.pong_time = Instant::now();
+            }
+            Message::Text(text) => {
+                let turn_data: TurnData = match serde_json::from_str(&text) {
+                    Ok(data) => data,
+                    Err(_) => {
+                        println!("Warning: Suspicious input received: {}", text);
+                        return;
+                    }
+                };
+
+                println!("Got TurnData: {:?}", turn_data);
+                self.lobby_addr.do_send(turn_data);
+            }
+
+            Message::Close(_any) => {
+                println!("Web socket was closed");
             }
             _ => ()
         }
