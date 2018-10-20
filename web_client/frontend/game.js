@@ -2,14 +2,40 @@ var game_view;
 var el_type = 'X';
 var game_socket;
 
-function get_field() {
+function get_canvas() {
     return document.getElementById("game_field");
 }
+
+
+function handle_message(obj) {
+    let ctx = get_canvas().getContext("2d");
+
+    if (obj.Cross) {
+        let elem = new GameElem('X', obj.Cross.x, obj.Cross.y);
+        game_view.draw_elem(ctx, elem);
+    }
+    else if(obj.Circle) {
+        let elem = new GameElem('O', obj.Circle.x, obj.Circle.y);
+        game_view.draw_elem(ctx, elem);
+    }
+    else if(obj.Line) {
+        console.log("unimplemented!");
+    }
+    else if(obj.Info) {
+        alert(obj.Info);
+    }
+    else {
+        console.log("Invalid object: ", obj);
+    }
+
+
+}
+
 
 function init() {
     console.log("Init called");
 
-    let game_field = get_field();
+    let game_field = get_canvas();
     let ctx = game_field.getContext("2d");
 
     game_socket = new WebSocket("ws://localhost:3000/ws");
@@ -18,6 +44,11 @@ function init() {
         console.log("Socket is opened");
         game_socket.send('Hello Server!');
     });
+
+    game_socket.addEventListener('message', function(event) {
+        console.log("Message received: ", event.data);
+        handle_message(JSON.parse(event.data));
+    })
 
     console.log("Web socket should be created");
 
@@ -45,7 +76,7 @@ function mouse_clicked(canvas, ev) {
 
 function set_random_element(logic_x, logic_y) {
 
-    let canvas = get_field();
+    let canvas = get_canvas();
     let ctx = canvas.getContext("2d");
 
     game_view.draw_elem(ctx, new GameElem(el_type, logic_x, logic_y));

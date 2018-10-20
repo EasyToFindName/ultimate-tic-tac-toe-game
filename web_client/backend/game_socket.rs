@@ -1,10 +1,12 @@
 use actix::prelude::*;
-use actix_web::{ws, ws::Message};
+use actix_web::{ws, ws::Message, ws::WsWriter};
 use std::time::{Duration, Instant};
 use serde_json;
 
-use game_lobby::TurnData;
 use game_lobby::GameLobby;
+use messages::{MakeTurn, Position, RegisterPlayer, ClientMessage};
+
+use futures::future::Future;
 use AppState;
 
 use std::sync::Arc;
@@ -24,7 +26,7 @@ impl GameSocket {
         }
     }
 
-    pub fn heartbeat(&self, ctx: &mut <Self as Actor>::Context) {
+    fn heartbeat(&self, ctx: &mut <Self as Actor>::Context) {
         ctx.run_interval(PING_INTERVAL, |socket_actor, ctx| {
             let delta_time = Instant::now().duration_since(socket_actor.pong_time);
 
@@ -37,6 +39,18 @@ impl GameSocket {
             }
         });
     }
+
+    fn send_message(&self, msg: ClientMessage, ctx: &mut <Self as Actor>::Context) {
+        let json_object = match serde_json::to_string(&msg) {
+            Ok(obj) => obj,
+            Err(msg) => {
+                println!("Error: Bad message {:?}", msg);
+                return;
+            }
+        };
+
+        ctx.send_text(json_object);
+    }
 }
 
 
@@ -44,8 +58,26 @@ impl Actor for GameSocket {
     type Context = ws::WebsocketContext<Self, AppState>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        println!("Web socket is opened");
-        self.heartbeat(ctx);
+        let status = match self.lobby_addr.send(RegisterPlayer(ctx.address().clone())).wait() {
+            Ok(st) => st,
+            Err(msg) => {
+                println!("Error: {}", msg);
+                ctx.send_close(None);
+                ctx.stop();
+                return;
+            }
+        };
+
+        if status == false {
+            self.send_message(ClientMessage::Info(String::from("The lobby is full!")), ctx);
+            println!("The lobby is already full");
+            ctx.send_close(None);
+            ctx.stop();
+            return;
+        } else {
+            println!("Web socket was opened!");
+            self.heartbeat(ctx);
+        }
     }
 }
 
@@ -56,7 +88,7 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for GameSocket {
                 self.pong_time = Instant::now();
             }
             Message::Text(text) => {
-                let turn_data: TurnData = match serde_json::from_str(&text) {
+                let turn_data: Position = match serde_json::from_str(&text) {
                     Ok(data) => data,
                     Err(_) => {
                         println!("Warning: Suspicious input received: {}", text);
@@ -65,7 +97,7 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for GameSocket {
                 };
 
                 println!("Got TurnData: {:?}", turn_data);
-                self.lobby_addr.do_send(turn_data);
+                self.lobby_addr.do_send(MakeTurn{player: ctx.address(), turn_data});
             }
 
             Message::Close(_any) => {
@@ -73,5 +105,13 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for GameSocket {
             }
             _ => ()
         }
+    }
+}
+
+impl Handler<ClientMessage> for GameSocket {
+    type Result = ();
+
+    fn handle(&mut self, msg: ClientMessage, ctx: &mut Self::Context) {
+        self.send_message(msg, ctx);
     }
 }

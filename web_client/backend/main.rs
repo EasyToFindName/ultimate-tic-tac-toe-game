@@ -1,5 +1,6 @@
 extern crate actix;
 extern crate actix_web;
+extern crate futures;
 
 extern crate serde;
 extern crate serde_json;
@@ -10,6 +11,7 @@ extern crate tic_tac_toe;
 
 mod game_socket;
 mod game_lobby;
+mod messages;
 
 use actix::prelude::*;
 use actix_web::{
@@ -45,9 +47,9 @@ fn main() {
     println!("Starting up server on {}...", server_addr);
 
     let system = System::new("Game lobby");
+    let lobby = Arc::new(GameLobby::new(2).start());
 
-    server::new(|| {
-        let lobby = Arc::new(GameLobby::new().start());
+    server::new(move || {
         App::with_state(AppState{lobby_addr: Arc::clone(&lobby)})
             .handler(
                 "/static",
