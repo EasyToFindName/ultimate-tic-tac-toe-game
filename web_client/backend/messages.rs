@@ -9,7 +9,7 @@ pub struct Position {
     pub y: usize,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum ClientMessage {
     Cross(Position),
     Circle(Position),
@@ -31,7 +31,7 @@ impl Position {
 }
 
 impl Message for MakeTurn {
-    type Result = bool;
+    type Result = ();
 }
 
 impl Message for RegisterPlayer {
