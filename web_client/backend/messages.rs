@@ -1,5 +1,4 @@
 use actix::prelude::*;
-use serde_json;
 use game_socket::GameSocket;
 
 // helper struct
@@ -7,6 +6,12 @@ use game_socket::GameSocket;
 pub struct Position {
     pub x: usize,
     pub y: usize,
+}
+
+impl Position {
+    pub fn new(x: usize, y: usize) -> Self {
+        Position {x, y}
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -18,19 +23,17 @@ pub enum ClientMessage {
 }
 
 pub struct RegisterPlayer(pub Addr<GameSocket>);
+pub struct PlayerDisconnected(pub Addr<GameSocket>);
+
+#[derive(Clone)]
+pub struct LobbyClosed;
 
 pub struct MakeTurn {
-    pub player: Addr<GameSocket>,
+    pub player_addr: Addr<GameSocket>,
     pub turn_data: Position,
 }
 
-impl Position {
-    pub fn new(x: usize, y: usize) -> Self {
-        Position {x, y}
-    }
-}
-
-impl Message for MakeTurn {
+impl Message for ClientMessage {
     type Result = ();
 }
 
@@ -38,6 +41,14 @@ impl Message for RegisterPlayer {
     type Result = bool;
 }
 
-impl Message for ClientMessage {
+impl Message for PlayerDisconnected {
+    type Result = ();
+}
+
+impl Message for MakeTurn {
+    type Result = ();
+}
+
+impl Message for LobbyClosed {
     type Result = ();
 }

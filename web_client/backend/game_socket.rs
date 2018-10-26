@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 use serde_json;
 
 use game_lobby::GameLobby;
-use messages::{MakeTurn, Position, RegisterPlayer, ClientMessage};
+use messages::*;
 
 use futures::future::Future;
 use AppState;
@@ -40,8 +40,8 @@ impl GameSocket {
         });
     }
 
-    fn send_message(&self, msg: ClientMessage, ctx: &mut <Self as Actor>::Context) {
-        let json_object = match serde_json::to_string(&msg) {
+    fn send_message(&self, msg: &ClientMessage, ctx: &mut <Self as Actor>::Context) {
+        let json_object = match serde_json::to_string(msg) {
             Ok(obj) => obj,
             Err(msg) => {
                 println!("Error: Bad message {:?}", msg);
@@ -58,7 +58,7 @@ impl Actor for GameSocket {
     type Context = ws::WebsocketContext<Self, AppState>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        let status = match self.lobby_addr.send(RegisterPlayer(ctx.address().clone())).wait() {
+        let is_registered = match self.lobby_addr.send(RegisterPlayer(ctx.address().clone())).wait() {
             Ok(st) => st,
             Err(msg) => {
                 println!("Error: {}", msg);
@@ -68,16 +68,22 @@ impl Actor for GameSocket {
             }
         };
 
-        if status == false {
-            self.send_message(ClientMessage::Info(String::from("The lobby is full!")), ctx);
+        if is_registered {
+            println!("Web socket was opened!");
+            self.heartbeat(ctx);
+
+        } else {
+            self.send_message(&ClientMessage::Info(String::from("The lobby is full!")), ctx);
             println!("The lobby is already full");
             ctx.send_close(None);
             ctx.stop();
             return;
-        } else {
-            println!("Web socket was opened!");
-            self.heartbeat(ctx);
         }
+    }
+
+    fn stopped(&mut self, ctx: &mut Self::Context) {
+        println!("GameSocket was stopped");
+        self.lobby_addr.do_send(PlayerDisconnected(ctx.address()));
     }
 }
 
@@ -97,7 +103,7 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for GameSocket {
                 };
 
                 println!("Got TurnData: {:?}", turn_data);
-                self.lobby_addr.do_send(MakeTurn{player: ctx.address(), turn_data});
+                self.lobby_addr.do_send(MakeTurn{player_addr: ctx.address(), turn_data});
             }
 
             Message::Close(_any) => {
@@ -112,6 +118,16 @@ impl Handler<ClientMessage> for GameSocket {
     type Result = ();
 
     fn handle(&mut self, msg: ClientMessage, ctx: &mut Self::Context) {
-        self.send_message(msg, ctx);
+        self.send_message(&msg, ctx);
+    }
+}
+
+impl Handler<LobbyClosed> for GameSocket {
+    type Result = ();
+
+    fn handle(&mut self, _msg: LobbyClosed, ctx: &mut Self::Context) {
+        println!("GameSocket: Recevied Lobby closed event");
+        ctx.send_close(None);
+        ctx.stop();
     }
 }

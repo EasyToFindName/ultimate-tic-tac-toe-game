@@ -50,6 +50,10 @@ function init() {
         handle_message(JSON.parse(event.data));
     })
 
+    game_socket.addEventListener('close', function (event) {
+        console.log("Socket was closed!");
+    });
+
     console.log("Web socket should be created");
 
     game_view = new GameView(10, 10, game_field.width, game_field.height);

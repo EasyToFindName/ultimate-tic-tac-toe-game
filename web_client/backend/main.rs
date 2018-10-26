@@ -25,7 +25,7 @@ use game_lobby::GameLobby;
 use std::sync::Arc;
 
 const SERVER_PORT: u16 = 3000;
-const FRONTEND_FOLDER_PATH: &'static str = "web_client/frontend";
+const FRONTEND_FOLDER_PATH: &str = "web_client/frontend";
 
 
 fn open_web_socket(request: &HttpRequest<AppState>) -> Result<HttpResponse, Error> {
@@ -59,7 +59,7 @@ fn main() {
             .resource("/", |r| r.method(Method::GET).f(redirect_to_main_page))
 
     }).bind(server_addr.clone())
-      .expect(&format!("Cannot bind to {}", server_addr))
+      .unwrap_or_else(|_| panic!("Cannot bind to {}", server_addr))
       .shutdown_timeout(0)
       .run();
 
