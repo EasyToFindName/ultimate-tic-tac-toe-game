@@ -1,4 +1,5 @@
 use std::fmt;
+use basics::point::Point;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum GameElem {
@@ -6,6 +7,13 @@ pub enum GameElem {
     O,
     Free,
     Obstacle,
+}
+
+pub struct WinningLine(pub Point<usize>, pub Point<usize>);
+
+pub struct Winner {
+    pub elem: GameElem,
+    pub win_line: WinningLine,
 }
 
 impl GameElem {

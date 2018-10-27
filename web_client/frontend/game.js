@@ -19,7 +19,10 @@ function handle_message(obj) {
         game_view.draw_elem(ctx, elem);
     }
     else if(obj.Line) {
-        console.log("unimplemented!");
+        let p1 = obj.Line[0];
+        let p2 = obj.Line[1];
+
+        game_view.draw_winning_line(ctx, p1, p2);
     }
     else if(obj.Info) {
         alert(obj.Info);
@@ -27,7 +30,6 @@ function handle_message(obj) {
     else {
         console.log("Invalid object: ", obj);
     }
-
 
 }
 

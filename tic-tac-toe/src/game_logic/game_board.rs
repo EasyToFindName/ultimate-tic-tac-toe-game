@@ -61,9 +61,7 @@ impl GameBoard {
 
     pub fn set_if_free(&mut self, row: usize, column: usize, value: GameElem) -> bool {
         let old_value = self.get_optional(row, column);
-        if let None = old_value {
-            return false;
-        }
+        if let None = old_value { return false; }
 
         let old_value = old_value.unwrap();
 
@@ -79,28 +77,30 @@ impl GameBoard {
         self.free_cells == 0
     }
 
-    pub fn get_winner(&self, row: usize, column: usize) -> Option<GameElem> {
-        let winner = self.get(row, column);
+    pub fn get_winner(&self, row: usize, column: usize) -> Option<Winner> {
+        let winner_elem = self.get(row, column);
 
-        if winner == GameElem::Free || winner == GameElem::Obstacle {
+        if winner_elem == GameElem::Free || winner_elem == GameElem::Obstacle {
             return None;
         }
 
         for dir in DIRECTIONS.iter() {
             let sequence_iter = self.get_sequence_iter(row, column, *dir);
-            let edge = sequence_iter.last().unwrap();
+            let edge1 = sequence_iter.last().unwrap();
 
-            let sequence_iter = self.get_sequence_iter(edge.y, edge.x, dir.inversed());
+            let sequence_iter = self.get_sequence_iter(edge1.y, edge1.x, dir.inversed());
 
-            let seq_len = sequence_iter.count();
+            let (seq_len, edge2) = sequence_iter.enumerate().last().unwrap();
 
-            if seq_len >= self.win_sequence_len {
-                return Some(winner);
+            // seq_len + 1 because enumerate counts from zero.
+            if seq_len + 1 >= self.win_sequence_len {
+                return Some(Winner{elem: winner_elem, win_line: WinningLine(edge1, edge2)});
             }
         }
 
         None
     }
+
 
     pub fn rows(&self) -> usize {
         self.board.rows()
@@ -116,6 +116,19 @@ impl GameBoard {
         direction: Point<i32>,
     ) -> GameBoardSequenceIter {
         GameBoardSequenceIter::new(self, Point::new(column, row), direction)
+    }
+}
+
+impl fmt::Display for GameBoard {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for i in 0..self.board.rows() {
+            for j in 0..self.board.columns() {
+                write!(f, "{} ", self.get(i, j))?;
+            }
+            write!(f, "\n")?;
+        }
+
+        Ok(())
     }
 }
 
@@ -152,18 +165,6 @@ impl<'a> Iterator for GameBoardSequenceIter<'a> {
     }
 }
 
-impl fmt::Display for GameBoard {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for i in 0..self.board.rows() {
-            for j in 0..self.board.columns() {
-                write!(f, "{} ", self.get(i, j))?;
-            }
-            write!(f, "\n")?;
-        }
-
-        Ok(())
-    }
-}
 
 #[cfg(test)]
 mod tests {

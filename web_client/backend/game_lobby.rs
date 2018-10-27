@@ -1,6 +1,11 @@
 use actix::prelude::*;
 use game_socket::GameSocket;
-use messages::{MakeTurn, RegisterPlayer, ClientMessage, PlayerDisconnected, LobbyClosed};
+
+use messages::{
+    Position, MakeTurn, RegisterPlayer, ClientMessage,
+    PlayerDisconnected, LobbyClosed
+};
+
 use tic_tac_toe::{game_board::*, game_elements::*};
 
 static GLYPHS: [GameElem; 2] = [GameElem::X, GameElem::O];
@@ -23,6 +28,7 @@ pub struct GameLobby {
     capacity: usize,
     state: GameState,
 }
+
 
 impl GameLobby {
     pub fn new(capacity: usize) -> Self {
@@ -116,8 +122,12 @@ impl Handler<MakeTurn> for GameLobby {
 
         // if winner was found, finish the game, otherwise switch player and continue
         match winner {
-            Some(player_glyph) => {
-                let info = format!("The winner is {}", player_glyph);
+            Some(winner_data) => {
+                let info = format!("The winner is {}", winner_data.elem);
+                let line_p1 = Position::from(winner_data.win_line.0);
+                let line_p2 = Position::from(winner_data.win_line.1);
+
+                self.broadcast_message(ClientMessage::Line(line_p1, line_p2));
                 self.broadcast_message(ClientMessage::Info(info));
                 self.broadcast_message(LobbyClosed);
             }

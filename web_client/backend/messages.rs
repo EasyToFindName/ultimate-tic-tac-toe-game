@@ -1,5 +1,7 @@
 use actix::prelude::*;
 use game_socket::GameSocket;
+use tic_tac_toe::basics::point::Point;
+use std::convert::From;
 
 // helper struct
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
@@ -11,6 +13,12 @@ pub struct Position {
 impl Position {
     pub fn new(x: usize, y: usize) -> Self {
         Position {x, y}
+    }
+}
+
+impl From<Point<usize>> for Position {
+    fn from(point: Point<usize>) -> Self {
+        Position {x: point.x, y: point.y}
     }
 }
 

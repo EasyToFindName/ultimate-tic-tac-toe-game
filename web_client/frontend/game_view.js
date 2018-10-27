@@ -1,38 +1,3 @@
-console.log("HEllo from draw!");
-
-function draw_cross(ctx, x, y, width, height) {
-    let x2 = x + width;
-    let y2 = y + height;
-
-    ctx.beginPath();
-
-    ctx.moveTo(x, y);
-    ctx.lineTo(x2, y2);
-
-    ctx.moveTo(x2, y);
-    ctx.lineTo(x, y2);
-
-    ctx.closePath();
-    ctx.stroke();
-}
-
-//draws an ellipse inside a given rectangle
-function draw_ellipse(ctx, x, y, width, height) {
-    let radius_x = width / 2;
-    let radius_y = height / 2;
-
-    let center_x = x + radius_x;
-    let center_y = y + radius_y;
-
-    ctx.beginPath();
-
-    ctx.ellipse(center_x, center_y, radius_x, radius_y, 0, 0, 2 * Math.PI, false);
-
-    ctx.closePath();
-    ctx.stroke();
-}
-
-
 class GameElem {
     constructor(type, x, y) {
         this.type = type;
@@ -55,6 +20,8 @@ class GameView {
         let step_x = this.res_x / this.cols;
         let step_y = this.res_y / this.rows;
 
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#99ccff";
         ctx.beginPath();
 
         for (let col = 1; col < this.cols; ++col) {
@@ -85,9 +52,11 @@ class GameView {
                 draw_ellipse(ctx, x, y, step_x, step_y);
             }
         }
+
     }
 
     draw_elem(ctx, elem) {
+        ctx.lineWidth = 3;
         let step_x = this.res_x / this.cols;
         let step_y = this.res_y / this.rows;
 
@@ -95,11 +64,59 @@ class GameView {
         let y = elem.y * step_y;
 
         if (elem.type == 'X') {
+            ctx.strokeStyle = "#000080"
             draw_cross(ctx, x, y, step_x, step_y);
         }
         else if (elem.type == 'O') {
+            ctx.strokeStyle = "#f81894";
             draw_ellipse(ctx, x, y, step_x, step_y);
         }
+    }
+
+    draw_winning_line(ctx, p1, p2) {
+        let step_x = this.res_x / this.cols;
+        let step_y = this.res_y / this.rows;
+
+        let p1_view = this.logic_to_view_coords(p1.x, p1.y);
+        let p2_view = this.logic_to_view_coords(p2.x, p2.y);
+
+        if(p1_view.x == p2_view.x) {
+            if(p1_view.y > p2_view.y) {
+                let temp = p1_view;
+                p1_view = p2_view;
+                p2_view = temp;
+            }
+
+            p1_view.x += step_x / 2;
+            p2_view.x += step_x / 2;
+            p2_view.y += step_y;
+        }
+        else if(p1_view.y == p2_view.y) {
+            if(p1_view.x > p2_view.x) {
+                let temp = p1_view;
+                p1_view = p2_view;
+                p2_view = temp;
+            }
+            p1_view.y += step_y / 2;
+            p2_view.y += step_y / 2;
+            p2_view.x += step_x;
+        }
+        else {
+            if(p1_view.x < p2_view.x) {
+                p2_view.x += step_x;
+                p2_view.y += step_y;
+            }
+
+            if(p1_view.y < p2_view.y) {
+                p1_view.y += step_y;
+                p2_view.x -= step_x;
+            }
+        }
+
+        let old_style = ctx.strokeStyle;
+        ctx.strokeStyle = "#66ee30";
+        draw_line(ctx, p1_view.x, p1_view.y, p2_view.x, p2_view.y, 6);
+        ctx.strokeStyle = old_style;
     }
 
     view_to_logic_coords(x, y) {
@@ -107,5 +124,12 @@ class GameView {
         let step_y = this.res_y / this.rows;
 
         return { x: Math.floor(x / step_x), y: Math.floor(y / step_y) };
+    }
+
+    logic_to_view_coords(x, y) {
+        let step_x = this.res_x / this.cols;
+        let step_y = this.res_y / this.rows;
+
+        return { x: x * step_x, y: y * step_y };
     }
 }
