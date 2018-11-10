@@ -44,3 +44,4 @@ function draw_line(ctx, x1, y1, x2, y2, line_weight) {
 
     ctx.lineWidth = old_weight;
 }
+

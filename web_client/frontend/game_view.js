@@ -74,43 +74,47 @@ class GameView {
     }
 
     draw_winning_line(ctx, p1, p2) {
-        let step_x = this.res_x / this.cols;
-        let step_y = this.res_y / this.rows;
+        let direction_vec = {
+            x: Math.sign(p2.x - p1.x),
+            y: Math.sign(p2.y - p1.y)
+        };
+
+        console.log(direction_vec);
+
+        if(direction_vec.y == - 1
+        ||(direction_vec.y == 0 && direction_vec.x == -1)) {
+            let temp = p1;
+            p1 = p2;
+            p2 = temp;
+
+            direction_vec.x *= -1;
+            direction_vec.y *= -1;
+        }
+
+        if(direction_vec.x == -1) {
+            p1.x += 1;
+            p2.x += 1;
+        }
+
+        p2.x += direction_vec.x;
+        p2.y += direction_vec.y;
+
+        console.log(p1);
+        console.log(p2);
 
         let p1_view = this.logic_to_view_coords(p1.x, p1.y);
         let p2_view = this.logic_to_view_coords(p2.x, p2.y);
 
-        if(p1_view.x == p2_view.x) {
-            if(p1_view.y > p2_view.y) {
-                let temp = p1_view;
-                p1_view = p2_view;
-                p2_view = temp;
-            }
+        let step_x = this.res_x / this.cols;
+        let step_y = this.res_y / this.rows;
 
+        if(p1_view.x == p2_view.x) {
             p1_view.x += step_x / 2;
             p2_view.x += step_x / 2;
-            p2_view.y += step_y;
         }
         else if(p1_view.y == p2_view.y) {
-            if(p1_view.x > p2_view.x) {
-                let temp = p1_view;
-                p1_view = p2_view;
-                p2_view = temp;
-            }
             p1_view.y += step_y / 2;
             p2_view.y += step_y / 2;
-            p2_view.x += step_x;
-        }
-        else {
-            if(p1_view.x < p2_view.x) {
-                p2_view.x += step_x;
-                p2_view.y += step_y;
-            }
-
-            if(p1_view.y < p2_view.y) {
-                p1_view.y += step_y;
-                p2_view.x -= step_x;
-            }
         }
 
         let old_style = ctx.strokeStyle;
