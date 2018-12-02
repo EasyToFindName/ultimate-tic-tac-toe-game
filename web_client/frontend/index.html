@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Lobby list</title>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+
+</head>
+
+<body>
+    <nav>
+
+    </nav>
+
+    <div class="section">
+        <div class = "container">
+            <a class="btn-large waves-effect waves-light modal-trigger" href="#create_lobby_modal"> Create lobby </a>
+
+            <div id="create_lobby_modal" class="modal">
+                <div class="modal-content">
+                    <h4>Create a game lobby</h4>
+                    <div class="row">
+                        <form action="/lobby/create" class="col s12" method="POST" id="create_lobby_form">
+                            <div class="row">
+                                <div class="col s4">
+                                    <p>Game field dimensions:</p>
+                                </div>
+                                <div class="col s4">
+                                    <input id="game_field_width" type="number" name="width" min="3" max="100" value="3" class="validate">
+                                    <label for="game_field_width">Width(from 3 to 100)</label>
+                                </div>
+
+                                <div class="col s4">
+                                    <input id="game_field_height" type="number" name="height" min="3" max="100" value="3" class="validate">
+                                    <label for="game_field_height">Height(from 3 to 100)</label>
+                                </div>
+
+                            </div>
+
+                            <div class="row">
+                                <div class="col s4">
+                                    <p>Win sequence length: </p>
+                                </div>
+
+                                <div class="col s8">
+                                    <input id="win_seq_len" type="number" name="win_seq_len" min="3" max="100" value="3" class="validate">
+                                </div>
+                            </div>
+
+
+                            <div class="row">
+                                <div class="col s4">
+                                    <p>Public:</p>
+                                </div>
+
+                                <div class="col s8">
+                                    <p>
+                                        <label>
+                                            <input type="checkbox" class="filled-in" checked="checked" />
+                                            <span></span>
+                                        </label>
+                                    </p>
+                                </div>
+
+                            </div>
+
+                            <div class="row">
+                                <div class="col s4">
+                                    <p>Hardcore mode:</p>
+                                </div>
+
+                                <div class="col s8">
+                                    <div class="switch">
+                                        <label>
+                                            Off
+                                            <input type="checkbox">
+                                            <span class="lever"></span>
+                                            On
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#!" class="modal-close waves-effect waves-red btn red">Cancel</a>
+                    <button class="modal-close waves-effect waves-green btn" type="Submit" name="action" id="lobby_submit">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <script src="./index.js"></script>
+</body>
+
+</html>

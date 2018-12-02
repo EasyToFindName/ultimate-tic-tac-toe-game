@@ -7,6 +7,11 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
+extern crate env_logger;
+
+#[macro_use]
+extern crate log;
+
 extern crate tic_tac_toe;
 
 mod game_socket;
@@ -18,6 +23,7 @@ use actix_web::{
     fs, ws, App, Error, server,
     http::{header, Method},
     HttpRequest, HttpResponse,
+    middleware
 };
 
 use game_socket::GameSocket;
@@ -34,7 +40,7 @@ fn open_web_socket(request: &HttpRequest<AppState>) -> Result<HttpResponse, Erro
 
 fn redirect_to_main_page(_request: &HttpRequest<AppState>) -> HttpResponse {
     HttpResponse::Found()
-        .header(header::LOCATION, "/static/game.html")
+        .header(header::LOCATION, "/static/index.html")
         .finish()
 }
 
@@ -44,13 +50,17 @@ pub struct AppState {
 
 fn main() {
     let server_addr = format!("localhost:{}", SERVER_PORT);
-    println!("Starting up server on {}...", server_addr);
+
+    std::env::set_var("RUST_LOG", "actix_web=debug,tic_tac_toe_server=debug");
+    std::env::set_var("RUST_BACKTRACE", "1");
+    env_logger::init();
 
     let system = System::new("Game lobby");
     let lobby = Arc::new(GameLobby::new(2).start());
 
     server::new(move || {
         App::with_state(AppState{lobby_addr: Arc::clone(&lobby)})
+            .middleware(middleware::Logger::default())
             .handler(
                 "/static",
                 fs::StaticFiles::new(FRONTEND_FOLDER_PATH).unwrap(),

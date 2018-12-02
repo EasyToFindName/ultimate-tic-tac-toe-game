@@ -31,7 +31,7 @@ impl GameSocket {
             let delta_time = Instant::now().duration_since(socket_actor.pong_time);
 
             if delta_time > CONNECTION_TIMEOUT {
-                println!("Connection timed-out. Dropping web socket...");
+                info!("Connection timed-out. Dropping web socket...");
                 ctx.stop();
             }
             else {
@@ -44,7 +44,7 @@ impl GameSocket {
         let json_object = match serde_json::to_string(msg) {
             Ok(obj) => obj,
             Err(msg) => {
-                println!("Error: Bad message {:?}", msg);
+                error!("Bad message {:?}", msg);
                 return;
             }
         };
@@ -58,23 +58,25 @@ impl Actor for GameSocket {
     type Context = ws::WebsocketContext<Self, AppState>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        let is_registered = match self.lobby_addr.send(RegisterPlayer(ctx.address().clone())).wait() {
-            Ok(st) => st,
-            Err(msg) => {
-                println!("Error: {}", msg);
-                ctx.send_close(None);
-                ctx.stop();
-                return;
-            }
-        };
+        let is_registered = match self.lobby_addr
+            .send(RegisterPlayer(ctx.address().clone()))
+            .wait() {
+                Ok(st) => st,
+                Err(msg) => {
+                    error!("{}", msg);
+                    ctx.send_close(None);
+                    ctx.stop();
+                    return;
+                }
+            };
 
         if is_registered {
-            println!("Web socket was opened!");
+            info!("Connected to the lobby");
             self.heartbeat(ctx);
 
         } else {
             self.send_message(&ClientMessage::Info(String::from("The lobby is full!")), ctx);
-            println!("The lobby is already full");
+            info!("The lobby if full. Closing GameSocket...");
             ctx.send_close(None);
             ctx.stop();
             return;
@@ -82,7 +84,7 @@ impl Actor for GameSocket {
     }
 
     fn stopped(&mut self, ctx: &mut Self::Context) {
-        println!("GameSocket was stopped");
+        info!("GameSocket was stopped");
         self.lobby_addr.do_send(PlayerDisconnected(ctx.address()));
     }
 }
@@ -97,17 +99,17 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for GameSocket {
                 let turn_data: Position = match serde_json::from_str(&text) {
                     Ok(data) => data,
                     Err(_) => {
-                        println!("Warning: Suspicious input received: {}", text);
+                        warn!("Suspicious input received: `{}`", text);
                         return;
                     }
                 };
 
-                println!("Got TurnData: {:?}", turn_data);
+                debug!("Got TurnData: {:?}", turn_data);
                 self.lobby_addr.do_send(MakeTurn{player_addr: ctx.address(), turn_data});
             }
 
             Message::Close(_any) => {
-                println!("Web socket was closed");
+                info!("GameSocket was closed");
             }
             _ => ()
         }
@@ -126,7 +128,7 @@ impl Handler<LobbyClosed> for GameSocket {
     type Result = ();
 
     fn handle(&mut self, _msg: LobbyClosed, ctx: &mut Self::Context) {
-        println!("GameSocket: Recevied Lobby closed event");
+        debug!("GameSocket: Recevied Lobby closed event");
         ctx.send_close(None);
         ctx.stop();
     }
