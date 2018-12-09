@@ -1,12 +1,17 @@
 use actix::prelude::*;
 use game_socket::GameSocket;
-
 use messages::{
     Position, MakeTurn, RegisterPlayer, ClientMessage,
     PlayerDisconnected, LobbyClosed
 };
 
+use std::{
+    default::Default,
+    cmp::{min, max},
+};
+
 use tic_tac_toe::{game_board::*, game_elements::*};
+
 
 static GLYPHS: [GameElem; 2] = [GameElem::X, GameElem::O];
 
@@ -20,6 +25,53 @@ struct Player {
     addr: Addr<GameSocket>,
     glyph: GameElem,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GameConfiguration {
+    width: usize,
+    height: usize,
+    win_seq_len: usize,
+    public: bool,
+    hardcore_mode_on: bool,
+}
+
+impl GameConfiguration {
+    pub fn validate(&self) -> Result<(), String> {
+
+        if self.width < 3 || self.width > 100 {
+            return Err("Width must be from 3 to 100".to_string());
+        }
+
+        if self.height < 3 || self.height > 100 {
+            return Err("Height must be from 3 to 100".to_string());
+        }
+
+        let win_seq_len_upper = max(self.width, self.height);
+        let win_seq_len_lower = 3;
+
+        if self.win_seq_len < win_seq_len_lower || self.win_seq_len > win_seq_len_upper {
+            return Err(
+                format!("Win sequence length must be from {} to {}",
+                        win_seq_len_lower, win_seq_len_upper)
+            );
+        }
+
+        Ok(())
+    }
+}
+
+impl Default for GameConfiguration {
+    fn default() -> Self {
+        GameConfiguration {
+            width: 3,
+            height: 3,
+            win_seq_len: 3,
+            public: true,
+            hardcore_mode_on: false,
+        }
+    }
+}
+
 
 pub struct GameLobby {
     game_board: GameBoard,

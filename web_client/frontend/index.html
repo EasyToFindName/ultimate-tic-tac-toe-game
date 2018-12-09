@@ -22,7 +22,7 @@
     </nav>
 
     <div class="section">
-        <div class = "container">
+        <div class="container">
             <a class="btn-large waves-effect waves-light modal-trigger" href="#create_lobby_modal"> Create lobby </a>
 
             <div id="create_lobby_modal" class="modal">
@@ -35,12 +35,14 @@
                                     <p>Game field dimensions:</p>
                                 </div>
                                 <div class="col s4">
-                                    <input id="game_field_width" type="number" name="width" min="3" max="100" value="3" class="validate">
+                                    <input id="game_field_width" type="number" name="width" min="3" max="100" value="3"
+                                        class="validate">
                                     <label for="game_field_width">Width(from 3 to 100)</label>
                                 </div>
 
                                 <div class="col s4">
-                                    <input id="game_field_height" type="number" name="height" min="3" max="100" value="3" class="validate">
+                                    <input id="game_field_height" type="number" name="height" min="3" max="100" value="3"
+                                        class="validate">
                                     <label for="game_field_height">Height(from 3 to 100)</label>
                                 </div>
 
@@ -52,7 +54,8 @@
                                 </div>
 
                                 <div class="col s8">
-                                    <input id="win_seq_len" type="number" name="win_seq_len" min="3" max="100" value="3" class="validate">
+                                    <input id="win_seq_len" type="number" id="win_seq_len" name="win_seq_len" min="3"
+                                        max="100" value="3" class="validate">
                                 </div>
                             </div>
 
@@ -65,7 +68,7 @@
                                 <div class="col s8">
                                     <p>
                                         <label>
-                                            <input type="checkbox" class="filled-in" checked="checked" />
+                                            <input type="checkbox" id="public" name="public" class="filled-in" checked="checked" />
                                             <span></span>
                                         </label>
                                     </p>
@@ -82,14 +85,13 @@
                                     <div class="switch">
                                         <label>
                                             Off
-                                            <input type="checkbox">
+                                            <input type="checkbox" id="hardcore_mode_on" name="hardcore_mode_on">
                                             <span class="lever"></span>
                                             On
                                         </label>
                                     </div>
                                 </div>
                             </div>
-
                         </form>
                     </div>
                 </div>

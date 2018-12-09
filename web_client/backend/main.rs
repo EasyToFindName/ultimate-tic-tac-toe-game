@@ -22,13 +22,17 @@ use actix::prelude::*;
 use actix_web::{
     fs, ws, App, Error, server,
     http::{header, Method},
-    HttpRequest, HttpResponse,
-    middleware
+    HttpRequest, HttpResponse, HttpMessage, AsyncResponder,
+    middleware,
 };
 
+use serde_json::json;
+
+
+use futures::{Future, Stream};
 use game_socket::GameSocket;
-use game_lobby::GameLobby;
-use std::sync::Arc;
+use game_lobby::{GameLobby, GameConfiguration};
+use std::{collections::HashMap, sync::Arc};
 
 const SERVER_PORT: u16 = 3000;
 const FRONTEND_FOLDER_PATH: &str = "web_client/frontend";
@@ -42,6 +46,18 @@ fn redirect_to_main_page(_request: &HttpRequest<AppState>) -> HttpResponse {
     HttpResponse::Found()
         .header(header::LOCATION, "/static/index.html")
         .finish()
+}
+
+fn create_lobby(request: &HttpRequest<AppState>) -> Box<Future<Item = HttpResponse, Error = Error>> {
+    request.json().from_err().and_then(|config: GameConfiguration| {
+        info!("Requested lobby configuration: {:?}", config);
+
+        match config.validate() {
+            Ok(_) => Ok(HttpResponse::Ok().json(json!({"ok": "/static/game.html"}))),
+            Err(e) => Ok(HttpResponse::Ok().json(json!({"error": e})))
+        }
+
+    }).responder()
 }
 
 pub struct AppState {
@@ -65,6 +81,7 @@ fn main() {
                 "/static",
                 fs::StaticFiles::new(FRONTEND_FOLDER_PATH).unwrap(),
             )
+            .resource("/lobby/create", |r| r.method(Method::POST).f(create_lobby))
             .resource("/ws", |r| r.method(Method::GET).f(open_web_socket))
             .resource("/", |r| r.method(Method::GET).f(redirect_to_main_page))
 

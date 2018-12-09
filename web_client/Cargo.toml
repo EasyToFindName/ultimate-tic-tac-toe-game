@@ -21,4 +21,3 @@ serde_derive = "1.0"
 
 futures = "*"
 tic_tac_toe = {path = "../tic-tac-toe"}
-
